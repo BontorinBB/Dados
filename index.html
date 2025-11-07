@@ -1,30 +1,387 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rolamento de Dados</title>
-    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>Jogo de Dados Virtual</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .players-container {
+            display: flex;
+            justify-content: space-between;
+            margin: 30px 0;
+            gap: 20px;
+        }
+
+        .player {
+            flex: 1;
+            padding: 20px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .player.active {
+            background: #e3f2fd;
+            border: 3px solid #2196f3;
+            transform: scale(1.05);
+        }
+
+        .player h2 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .dice-container {
+            margin: 20px 0;
+            min-height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border: 2px solid #333;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            font-weight: bold;
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .dice.rolling {
+            animation: roll 0.5s ease-in-out 3;
+        }
+
+        @keyframes roll {
+            0% { transform: rotate(0deg); }
+            25% { transform: rotate(90deg); }
+            50% { transform: rotate(180deg); }
+            75% { transform: rotate(270deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .score {
+            font-size: 3em;
+            font-weight: bold;
+            color: #2196f3;
+            margin: 10px 0;
+        }
+
+        .total-score {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            margin: 30px 0;
+        }
+
+        button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin: 10px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #1976d2;
+            transform: translateY(-2px);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #rollBtn {
+            background: #4caf50;
+        }
+
+        #rollBtn:hover {
+            background: #45a049;
+        }
+
+        #resetBtn {
+            background: #f44336;
+        }
+
+        #resetBtn:hover {
+            background: #da190b;
+        }
+
+        .game-info {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e8f5e8;
+            border-radius: 10px;
+            border-left: 5px solid #4caf50;
+        }
+
+        #message {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            min-height: 30px;
+        }
+
+        .dice-value {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .players-container {
+                flex-direction: column;
+            }
+            
+            .game-container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .dice {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5em;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Rolamento de Dados</h1>
+    <div class="game-container">
+        <h1>🎲 Jogo de Dados 🎲</h1>
         
-        <div class="dice-container">
-            <div class="dice" id="dice1">
-                <div class="dot"></div>
+        <div class="game-info">
+            <div id="message">Jogador 1, é sua vez!</div>
+        </div>
+
+        <div class="players-container">
+            <div class="player active" id="player1">
+                <h2>Jogador 1</h2>
+                <div class="dice-container">
+                    <div class="dice" id="dice1">?</div>
+                </div>
+                <div class="score" id="score1">0</div>
+                <div class="total-score">Total: <span id="total1">0</span></div>
+                <div class="dice-value" id="value1">Último valor: -</div>
             </div>
-            <div class="dice" id="dice2">
-                <div class="dot"></div>
+
+            <div class="player" id="player2">
+                <h2>Jogador 2</h2>
+                <div class="dice-container">
+                    <div class="dice" id="dice2">?</div>
+                </div>
+                <div class="score" id="score2">0</div>
+                <div class="total-score">Total: <span id="total2">0</span></div>
+                <div class="dice-value" id="value2">Último valor: -</div>
             </div>
         </div>
-        
-        <div class="total" id="total">Total: 0</div>
-        
-        <button id="rollButton">Rolar Dados</button>
+
+        <div class="controls">
+            <button id="rollBtn">🎲 Rolar Dados</button>
+            <button id="holdBtn">📥 Manter Pontuação</button>
+            <button id="resetBtn">🔄 Novo Jogo</button>
+        </div>
+
+        <div class="rules">
+            <h3>Como Jogar:</h3>
+            <p>• Rode o dado para acumular pontos</p>
+            <p>• Se tirar 1, perde os pontos da rodada</p>
+            <p>• Use "Manter Pontuação" para salvar seus pontos</p>
+            <p>• Primeiro a chegar a 100 pontos vence!</p>
+        </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elementos do DOM
+            const player1 = document.getElementById('player1');
+            const player2 = document.getElementById('player2');
+            const dice1 = document.getElementById('dice1');
+            const dice2 = document.getElementById('dice2');
+            const score1 = document.getElementById('score1');
+            const score2 = document.getElementById('score2');
+            const total1 = document.getElementById('total1');
+            const total2 = document.getElementById('total2');
+            const value1 = document.getElementById('value1');
+            const value2 = document.getElementById('value2');
+            const rollBtn = document.getElementById('rollBtn');
+            const holdBtn = document.getElementById('holdBtn');
+            const resetBtn = document.getElementById('resetBtn');
+            const message = document.getElementById('message');
+
+            // Estado do jogo
+            let currentPlayer = 1;
+            let scores = [0, 0];
+            let currentScore = 0;
+            let gameActive = true;
+
+            // Função para rolar o dado - CORRIGIDA
+            function rollDice() {
+                if (!gameActive) return;
+
+                // Gerar número aleatório entre 1 e 6
+                const diceValue = Math.floor(Math.random() * 6) + 1;
+                
+                // Mostrar animação
+                const currentDice = currentPlayer === 1 ? dice1 : dice2;
+                currentDice.classList.add('rolling');
+                
+                // Atualizar visual do dado após animação
+                setTimeout(() => {
+                    currentDice.classList.remove('rolling');
+                    currentDice.textContent = diceValue;
+                    
+                    // Atualizar último valor
+                    const valueElement = currentPlayer === 1 ? value1 : value2;
+                    valueElement.textContent = `Último valor: ${diceValue}`;
+
+                    if (diceValue !== 1) {
+                        // Adicionar ao placar atual
+                        currentScore += diceValue;
+                        updateScores();
+                        message.textContent = `Jogador ${currentPlayer} rolou ${diceValue}! Continue!`;
+                    } else {
+                        // Se tirou 1, perde os pontos da rodada
+                        currentScore = 0;
+                        updateScores();
+                        message.textContent = `Jogador ${currentPlayer} tirou 1! Perdeu os pontos da rodada.`;
+                        switchPlayer();
+                    }
+                }, 1500);
+            }
+
+            // Função para manter a pontuação
+            function holdScore() {
+                if (!gameActive || currentScore === 0) return;
+
+                // Adicionar pontuação atual ao total
+                scores[currentPlayer - 1] += currentScore;
+                currentScore = 0;
+                updateScores();
+
+                // Verificar se ganhou
+                if (scores[currentPlayer - 1] >= 100) {
+                    gameActive = false;
+                    message.textContent = `🎉 Jogador ${currentPlayer} venceu! 🎉`;
+                    rollBtn.disabled = true;
+                    holdBtn.disabled = true;
+                } else {
+                    message.textContent = `Jogador ${currentPlayer} manteve a pontuação!`;
+                    switchPlayer();
+                }
+            }
+
+            // Função para alternar jogador
+            function switchPlayer() {
+                currentScore = 0;
+                updateScores();
+                
+                // Remover classe active do jogador atual
+                if (currentPlayer === 1) {
+                    player1.classList.remove('active');
+                    player2.classList.add('active');
+                    currentPlayer = 2;
+                } else {
+                    player2.classList.remove('active');
+                    player1.classList.add('active');
+                    currentPlayer = 1;
+                }
+                
+                message.textContent = `Jogador ${currentPlayer}, é sua vez!`;
+            }
+
+            // Função para atualizar os placares
+            function updateScores() {
+                score1.textContent = currentPlayer === 1 ? currentScore : '0';
+                score2.textContent = currentPlayer === 2 ? currentScore : '0';
+                total1.textContent = scores[0];
+                total2.textContent = scores[1];
+            }
+
+            // Função para resetar o jogo
+            function resetGame() {
+                scores = [0, 0];
+                currentScore = 0;
+                currentPlayer = 1;
+                gameActive = true;
+
+                // Resetar interface
+                dice1.textContent = '?';
+                dice2.textContent = '?';
+                value1.textContent = 'Último valor: -';
+                value2.textContent = 'Último valor: -';
+                
+                player1.classList.add('active');
+                player2.classList.remove('active');
+                
+                updateScores();
+                
+                message.textContent = 'Jogador 1, é sua vez!';
+                
+                rollBtn.disabled = false;
+                holdBtn.disabled = false;
+            }
+
+            // Event listeners
+            rollBtn.addEventListener('click', rollDice);
+            holdBtn.addEventListener('click', holdScore);
+            resetBtn.addEventListener('click', resetGame);
+
+            // Inicializar jogo
+            updateScores();
+        });
+    </script>
 </body>
 </html>
